@@ -42,20 +42,14 @@
               <v-switch label="Li e aceito os termos." v-model="agree" class="mt-3"></v-switch>
 
               <v-alert type="error" icon="warning" :value="error" transition="scale-transition" class="mx-1">
-                {{ error }}
+                {{ message }}
               </v-alert>
               <v-layout align-center justify-center row wrap v-if="agree" class="px-1">
-                <v-flex xs12 sm12 md6 lg6 xl6 class="px-1 my-1" style="text-align: center;">
-                  <g-signin-button :params="googleSignInParams" @success="onSignInSuccessGoogle" @error="onSignInErrorGoogle" block>
-                    <v-icon dark left class="mx-2 my-0">fab fa-google</v-icon>
-                    Google
-                  </g-signin-button>
-                </v-flex>
-                <v-flex xs12 sm12 md6 lg6 xl6 class="px-1 my-1" style="text-align: center;">
-                  <fb-signin-button :params="facebookSignInParams" @success="onSignInSuccessFacebook" @error="onSignInErrorFacebook" block>
-                    <v-icon dark left class="mx-2 my-0">fab fa-facebook</v-icon>
-                    Facebook
-                  </fb-signin-button>
+                <v-flex xs12 sm12 md6 lg6 xl6 v-for="provider in providers" :key="provider.name" class="px-1" style="text-align: center;">
+                  <v-btn large :color="provider.color" @click="authenticate(provider.name)" class="white--text" block>
+                    <v-icon dark left v-html="provider.icon"></v-icon>
+                    {{ provider.label }}
+                  </v-btn>
                 </v-flex>
               </v-layout>
             </v-card>
@@ -92,32 +86,32 @@ import TextDialog from '../components/Dialog.vue'
 
 require('../plugins/facebook.js')
 
-// require('../library/facebook.js')
-
 export default {
   components: {
     TextDialog
   },
   data () {
     return {
-      facebookSignInParams: {
-        scope: 'email,public_profile',
-        return_scopes: true
-      },
-      googleSignInParams: {
-        client_id: process.env.VUE_APP_GOOGLE
-      },
       privacy: '',
       details: '',
       agree: false,
       wait: false,
-      error: false
+      error: false,
+      message: '',
+      all: [
+        { name: 'google', label: 'Google', icon: 'fab fa-google', color: 'red darken-3' },
+        { name: 'facebook', label: 'facebook', icon: 'fab fa-facebook', color: 'indigo darken-4' },
+        { name: 'twitter', label: 'twitter', icon: 'fab fa-twitter', color: 'light-blue' },
+        { name: 'instagram', label: 'instagram', icon: 'fab fa-instagram', color: 'pink' },
+        { name: 'linkedin', label: 'linkedin', icon: 'fab fa-linkedin', color: 'blue-grey' },
+        { name: 'microsoft', label: 'microsoft', icon: 'fab fa-microsoft', color: 'blue' }
+      ]
     }
   },
   computed: {
     providers: function () {
       return this.all.filter(function (e) {
-        if (String(process.env['VUE_APP_' + e.name]).trim().length > 0) {
+        if (process.env['VUE_APP_' + e.name.toUpperCase()] !== undefined && String(process.env['VUE_APP_' + e.name.toUpperCase()]).trim().length > 0) {
           return e
         }
       })
@@ -134,171 +128,51 @@ export default {
     this.loadFiles()
   },
   methods: {
-    onSignInSuccessFacebook (facebook) {
-      console.log('#1 - Success to sign in Facebook!')
-
-      // console.log(JSON.stringify(facebook))
-
+    authenticate (provider) {
+      this.error = false
       this.wait = true
 
-      this.login(facebook.authResponse.accessToken, 'Facebook')
-    },
-    onSignInErrorFacebook (error) {
-      console.log(error)
-
-      this.error = 'Ops! Ocorreu um erro ao tentar autenticá-lo(a)! Por favor, tente novamente mais tarde.'
-
-      this.wait = false
-
-      throw new Error(error)
-    },
-    onSignInSuccessGoogle (google) {
-      console.log('#1 - Success to sign in Google!')
-
-      // console.log(JSON.stringify(google))
-
-      this.wait = true
-
-      this.login(google.getAuthResponse(true).access_token, 'Google')
-    },
-    onSignInErrorGoogle (error) {
-      console.log(error)
-
-      this.error = 'Ops! Ocorreu um erro ao tentar autenticá-lo(a)! Por favor, tente novamente mais tarde.'
-
-      this.wait = false
-
-      throw new Error(error)
-    },
-    login (token, driver) {
-      console.log('Driver: ' + driver)
-      console.log('Token: ' + token)
-      /*
       var self = this
 
-      var err = function (error) {
-        console.log(error)
+      console.log('Provider: ' + provider)
 
-        if (error !== null && typeof error === 'object' &&
-        error.response !== null && typeof error.response !== 'undefined' &&
-        error.response.data !== null && typeof error.response.data !== 'undefined') {
-          console.log(JSON.stringify(error.response.data))
-        }
+      this.$auth.authenticate(provider).then(function (response) {
+        console.log('Access Token: ' + response.data.token)
 
+        var token = response.data.token
+
+        axios.get(process.env.VUE_APP_CLOUD + '/manager/user', { headers: { Authorization: 'Bearer ' + token } }).then((response) => {
+          console.log(JSON.stringify(response.data))
+
+          self.$session.set('user', {
+            authenticated: true,
+            name: response.data.name,
+            email: response.data.email,
+            picture: response.data.picture,
+            token: token
+          })
+
+          self.wait = false
+
+          self.$router.push({ path: '/home' })
+        }).catch(function (error) {
+          self.wait = false
+          self.error = true
+          self.message = 'Você possui um usuário válido, porém não tem permissões de acessar esta área de gestão!'
+
+          console.log(JSON.stringify(error))
+        })
+      }).catch(function (error) {
         self.wait = false
+        self.error = true
+        self.message = 'Não foi possível cadastrar ou recuperar seu usuário!'
 
-        self.error = 'Ops! Ocorreu um erro ao tentar autenticá-lo(a)! Por favor, tente novamente mais tarde.'
-
-        self.$err(error)
-      }
-
-      var timestamp = Math.floor(ts.now())
-
-      console.log('Timestamp for sync is ' + timestamp + ' and refers ' + ts.toDate(timestamp))
-
-      var appID = this.settings.app
-      var appPK = this.settings.token
-
-      var appSignature = crypto.HmacSHA1(timestamp + appID, appPK)
-
-      var headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'x-embrapa-auth-timestamp': timestamp,
-        'x-embrapa-auth-application-id': appID,
-        'x-embrapa-auth-application-signature': appSignature
-      }
-
-      var secret = '' + crypto.MD5(appPK + timestamp)
-      secret = secret.substr(0, 16)
-
-      console.log('#2 - Trying to connect in remote server...')
-
-      axios.get(settings.api + '/status', { timeout: 2000, mode: 'no-cors', headers: headers }).then(function (response) {
-        console.log('#3 - Registering or logging in instance and getting Titan\'s private key...')
-
-        var tk = blowfish.blowfish.encrypt(token, secret, { cipherMode: 0, outputType: 0 })
-
-        var data = {
-          driver: driver,
-          token: tk,
-          device: self.mobile.osName + ' ' + self.mobile.osVersion + ' (' + self.mobile.browserName + ' ' + self.mobile.browserVersion + ')'
-        }
-
-        axios.post(settings.api + '/register', query.stringify(data), { mode: 'no-cors', headers: headers }).then(response => {
-          var clientID = response.data.id
-          var clientPK = blowfish.blowfish.decrypt(response.data.pk, secret, { cipherMode: 0, outputType: 0 })
-
-          console.log('ID: ' + clientID)
-          console.log('PK: ' + clientPK)
-
-          var clientSignature = crypto.HmacSHA1(timestamp + clientID, clientPK)
-
-          var headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'x-embrapa-auth-timestamp': timestamp,
-            'x-embrapa-auth-application-id': appID,
-            'x-embrapa-auth-application-signature': appSignature,
-            'x-embrapa-auth-client-id': clientID,
-            'x-embrapa-auth-client-signature': clientSignature
-          }
-
-          console.log('#4 - Getting user data from instance...')
-
-          axios.get(settings.api + '/auth', { mode: 'no-cors', headers: headers }).then(function (response) {
-            console.log('#5 - Encoding picture to Base64...')
-
-            image2base64(settings.api.slice(0, -3) + 'titan.php?target=script&toSection=manager&file=picture&user=' + response.data.id + '&width=200').then(picture => {
-              console.log('#6 - Saving all data in local DB...')
-
-              console.log(picture)
-
-              self.$localStorage.set('token', {
-                id: clientID,
-                pk: clientPK
-              })
-
-              self.$localStorage.set('user', {
-                authenticated: true,
-                id: response.data.id,
-                name: response.data.name,
-                email: response.data.mail,
-                picture: picture,
-                language: response.data.language,
-                timezone: response.data.timezone
-              })
-
-              // settings.api.slice (0, -3) + 'titan.php?target=script&toSection=manager&file=picture&user=' + response.data.id + '&width=200'
-
-              self.$root.$data.trySync = true
-
-              if (self.mobile.isMobile) {
-                self.$localStorage.set('alwaysSync', false)
-              }
-
-              self.wait = false
-
-              console.log('#6 - All done! Redirecting...')
-
-              self.$router.push({ path: '/home' })
-            }).catch(err)
-          }).catch(err)
-        }).catch(err)
-      }).catch(error => {
-        console.log(error)
-
-        self.$err(error)
-
-        self.wait = false
-
-        self.error = 'Atenção! O servidor remoto parece estar indisponível. Por favor, verifique sua conexão com a internet ou tente novamente mais tarde.'
+        console.log(JSON.stringify(error))
       })
-      */
     },
     loadFiles () {
       var p = '../privacy-policy.html'
-      var d = '../details.html'
+      var d = '../info.html'
 
       var self = this
 
