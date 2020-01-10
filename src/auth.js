@@ -12,12 +12,10 @@ Vue.use(VueAuthenticate, {
     google: {
       tokenPath: 'token',
       clientId: process.env.VUE_APP_GOOGLE,
-      redirectUri: 'http://localhost:8080',
       scope: ['email', 'profile']
     },
     facebook: {
-      clientId: process.env.VUE_APP_FACEBOOK,
-      redirectUri: 'http://localhost:8080'
+      clientId: process.env.VUE_APP_FACEBOOK
     }
   }
 })

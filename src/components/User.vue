@@ -9,7 +9,7 @@
         <v-list-item-subtitle>{{ user.email }}</v-list-item-subtitle>
       </v-list-item-content>
       <v-list-item-icon>
-        <v-btn icon>
+        <v-btn icon @click="$emit('clicked')">
           <v-icon>power_settings_new</v-icon>
         </v-btn>
       </v-list-item-icon>
