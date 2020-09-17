@@ -34,7 +34,7 @@
             <v-list-item-icon>
               <v-icon>group</v-icon>
             </v-list-item-icon>
-            <v-list-item-title>Usuários</v-list-item-title>
+            <v-list-item-title>Gestores</v-list-item-title>
           </v-list-item>
 
           <v-list-item @click="go('/about')">
