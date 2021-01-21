@@ -42,7 +42,7 @@
           Sua busca por <strong>"{{ search }}"</strong> não encontrou resultados.
         </v-alert>
       </template>
-      <template v-slot:footer>
+      <template v-slot:footer class="row">
       <v-text-field
       v-model="search"
       append-icon="search"
@@ -67,27 +67,77 @@
               <v-flex xs12 sm6 md6>
                 <v-text-field v-model="editedFarm.city" label="Cidade"></v-text-field>
               </v-flex>
-              <v-flex xs12 sm6 md6>
+              <v-flex xs12 sm12 md12>
                 <v-text-field v-model="editedFarm.state" label="Estado"></v-text-field>
               </v-flex>
-              <v-flex xs12 sm6 md6>
-                <v-select
-                  :items="this.users"
-                  item-text="name"
-                  item-value="_id"
-                  v-model="editedFarm.user"
-                  label="Proprietário"
-                  solo
-                ></v-select>
-              </v-flex>
               <v-flex xs12 sm12 md12>
+                <span class="font-weight-bold">Usuários</span>
+              </v-flex>
+              <v-flex>
+                <v-row v-for="(item, index) in editedFarm.users" :key="item.id">
+                    <v-col>
+                      <span class="font-weight-medium align-center">{{ item.user.name }}</span>
+                    </v-col>
+                    <v-col>
+                      <v-select xs1 sm1 md1
+                        :items="roles"
+                        item-text="text"
+                        item-value="value"
+                        v-model="item.role"
+                      ></v-select>
+                    </v-col>
+                    <v-col>
+                      <v-btn fab dark small color="warning" @click="deleteUser(index)">
+                        <v-icon dark>
+                          mdi-account-minus
+                        </v-icon>
+                      </v-btn>
+                  </v-col>
+                </v-row>
+              </v-flex>
+              <v-flex>
+                <v-row>
+                    <v-col md6>
+                      <v-autocomplete
+                        v-model="newUser"
+                        :items="items"
+                        :loading="isLoading"
+                        :search-input.sync="searchUser"
+                        color="white"
+                        hide-no-data
+                        hide-selected
+                        item-text="Description"
+                        item-value="API"
+                        placeholder="E-mail do novo usuário"
+                        return-object
+                        solo
+                      ></v-autocomplete>
+                    </v-col>
+                    <v-col>
+                      <v-select xs1 sm1 md1
+                        :items="roles"
+                        item-text="text"
+                        item-value="value"
+                        v-model="newUser.role"
+                      ></v-select>
+                    </v-col>
+                    <v-col>
+                      <v-btn fab dark small color="success" @click="addUser(newUser)">
+                        <v-icon dark>
+                          mdi-account-plus
+                        </v-icon>
+                      </v-btn>
+                  </v-col>
+                </v-row>
+              </v-flex>
+              <v-flex xs12 sm12 md12 v-if="editedFarm.code">
                 <v-btn
                   :color="editedFarm.active ? 'red' : 'green'"
                   :disabled="enabling"
                   @click="editedFarm.active = !editedFarm.active"
                   text>
                   <v-icon left>{{ editedFarm.active ? 'cancel' : 'check' }}</v-icon>
-                  {{ editedFarm.active ? 'Desativar' : 'Ativar' }}
+                  {{ editedFarm.active ? 'Desativar Propriedade' : 'Ativar Propriedade' }}
                 </v-btn>
               </v-flex>
             </v-layout>
@@ -127,9 +177,14 @@ export default {
       search: '',
       farms: [],
       dialogEditFarm: false,
-      editedFarm: {},
+      editedFarm: { users: [] },
+      newUser: {},
       enabling: false,
-      users: []
+      users: [],
+      roles: [{ value: 'owner', text: 'Proprietário' }, { value: 'manager', text: 'Gerente' }, { value: 'viewer', text: 'Visualizador' }],
+      isLoading: false,
+      searchUser: null,
+      entries: []
     }
   },
   filters: {
@@ -137,8 +192,47 @@ export default {
       return (value) ? moment(String(value)).format('DD/MM/YYYY hh:mm a') : ''
     }
   },
+  computed: {
+    fields () {
+      if (!this.model) return []
+
+      return Object.keys(this.model).map((key) => {
+        return {
+          key,
+          value: this.model[key] || 'n/a'
+        }
+      })
+    },
+    items () {
+      return this.entries.map((entry) => {
+        const Description =
+          entry.email.length + entry.name.length > this.descriptionLimit ? entry.email : entry.name + ' - ' + entry.email
+
+        return Object.assign({}, entry, { Description })
+      })
+    }
+  },
+  watch: {
+    searchUser (val) {
+      // Items have already been loaded
+      if (this.items.length > 0) return
+
+      // Items have already been requested
+      if (this.isLoading) return
+
+      this.isLoading = true
+      const user = this.$session.get('user')
+      // Lazily load input items
+      axios.get(process.env.VUE_APP_CLOUD + '/manager/users/' + this.search, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+        // this.count = response.data.length
+        this.entries = response.data
+      }).catch((err) => {
+        console.log(err)
+      }).finally(() => (this.isLoading = false))
+    }
+  },
   mounted () {
-    this.loadUsers()
+    // this.loadUsers()
     this.loadFarms()
   },
   methods: {
@@ -148,19 +242,11 @@ export default {
       axios.get(process.env.VUE_APP_CLOUD + '/manager/farms', { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         console.log(response)
         self.farms = response.data
-        /* self.farms.forEach(item => {
-          // var index = this.users.findIndex(i => i._id === item.author)
-          if (index !== -1) {
-            item.owner = this.users[index].name
-          } else {
-            item.owner = ''
-          }
-        }) */
       }).catch(function (error) {
         console.log(error)
       })
     },
-    loadUsers () {
+    /* loadUsers () {
       const user = this.$session.get('user')
       this.users = []
       axios.get(process.env.VUE_APP_CLOUD + '/manager/users', { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
@@ -168,13 +254,13 @@ export default {
       }).catch(function (error) {
         console.log(error)
       })
-    },
+    }, */
     editItem (item) {
       this.editedFarm = Object.assign({}, item)
       this.dialogEditFarm = true
     },
     newItem () {
-      this.editedFarm = Object.assign({})
+      this.editedFarm = Object.assign({ users: [] })
       this.dialogEditFarm = true
     },
     deleteItem (item) {
@@ -184,6 +270,7 @@ export default {
       this.loadFarms()
       this.dialogEditFarm = false
       this.editedFarm = {}
+      this.newUser = {}
     },
     save () {
       const user = this.$session.get('user')
@@ -203,7 +290,15 @@ export default {
       }
       this.editedFarm = {}
       this.loadFarms()
-    }/*,
+    },
+    deleteUser (index) {
+      this.editedFarm.users.splice(index, 1)
+    },
+    addUser (user) {
+      this.editedFarm.users.push({ role: user.role, user: user })
+      this.newUser = {}
+    }
+    /*,
     enable (farm) {
       this.enabling = true
       const user = this.$session.get('user')

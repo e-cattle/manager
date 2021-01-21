@@ -1,36 +1,31 @@
 <template>
   <v-app light>
     <template>
-      <v-card color="blue lighten-2">
-        <v-card-title class="headline blue lighten-1">Cadastrar Usuário</v-card-title>
+      <v-card>
+        <v-card-title class="headline">Cadastrar Usuário</v-card-title>
         <v-card-text>
-          <v-autocomplete
-            v-model="model"
-            :items="items"
-            :loading="isLoading"
-            :search-input.sync="search"
-            color="white"
-            hide-no-data
-            hide-selected
-            item-text="Description"
-            item-value="API"
-            placeholder="Digite o e-mail do novo usuário"
-            prepend-icon="mdi-email-search"
-            return-object
-            solo
-          ></v-autocomplete>
+          <v-text-field
+            v-model="newUser.email"
+            :rules="emailRules"
+            prepend-icon="mdi-email"
+            append-icon="mdi-close"
+            @click:append="newUser.email = null"
+            label="Digite o e-mail do novo usuário"
+            required
+            ></v-text-field>
         </v-card-text>
-        <v-divider></v-divider>
-        <v-expand-transition>
+        <v-card-text>
           <v-select
             :items="this.roles"
             item-text="text"
             item-value="value"
             v-model="newUser.role"
+            prepend-icon="mdi-account-circle"
             label="Papel"
-            solo v-if="this.model != null"
+            solo
+            required
           ></v-select>
-        </v-expand-transition>
+        </v-card-text>
         <v-divider></v-divider>
         <v-card-text>
           <v-autocomplete
@@ -46,18 +41,23 @@
             placeholder="Digite o nome da propriedade"
             prepend-icon="mdi-image-search"
             return-object
-            solo v-if="this.newUser.role != null"
-          ></v-autocomplete>
+            solo
+            required
+            >
+            <v-icon slot="append" color="dark" @click="modelFarms = null">
+              mdi-close
+            </v-icon>
+          </v-autocomplete>
         </v-card-text>
         <v-card-actions>
-          <v-btn :disabled="!modelFarms" color="success darken-3" @click="saveNewUser">
-            Salvar
-            <v-icon right>mdi-check-circle</v-icon>
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn :disabled="!model" color="grey darken-3" @click="model = null; items = [];modelFarms = null; farms = [];">
+          <v-btn :disabled="!modelFarms && !newUser.role && !newUser.email" color="warning darken-3" @click="newUser.role = null; modelFarms = null; farms = []; newUser.email = null;">
             Limpar formulário
             <v-icon right>mdi-close-circle</v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn :disabled="!modelFarms || !newUser.role || !newUser.email" color="success darken-3" @click="saveNewUser">
+            Salvar
+            <v-icon right>mdi-check-circle</v-icon>
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -69,29 +69,19 @@ import axios from 'axios'
 export default {
   data: () => ({
     descriptionLimit: 60,
-    entries: [],
     listFarms: [],
-    isLoading: false,
     isLoadingFarms: false,
-    model: null,
     modelFarms: null,
-    search: null,
     searchFarms: null,
     roles: [{ value: 'owner', text: 'Proprietário' }, { value: 'manager', text: 'Gerente' }, { value: 'viewer', text: 'Visualizador' }],
-    newUser: {}
+    newUser: {},
+    emailRules: [
+      v => !!v || 'O campo e-mail é obrigatório',
+      v => /.+@.+/.test(v) || 'Por favor, insira um e-mail válido'
+    ]
   }),
 
   computed: {
-    fields () {
-      if (!this.model) return []
-
-      return Object.keys(this.model).map((key) => {
-        return {
-          key,
-          value: this.model[key] || 'n/a'
-        }
-      })
-    },
     fieldsFarms () {
       if (!this.modelFarms) return []
 
@@ -100,14 +90,6 @@ export default {
           key,
           value: this.modelFarms[key] || 'n/a'
         }
-      })
-    },
-    items () {
-      return this.entries.map((entry) => {
-        const Description =
-          entry.email.length + entry.name.length > this.descriptionLimit ? entry.email : entry.name + ' - ' + entry.email
-
-        return Object.assign({}, entry, { Description })
       })
     },
     farms () {
@@ -121,30 +103,9 @@ export default {
   },
 
   watch: {
-    search (val) {
-      // Items have already been loaded
-      if (this.items.length > 0) return
-
-      // Items have already been requested
-      if (this.isLoading) return
-
-      this.isLoading = true
-      const user = this.$session.get('user')
-      // Lazily load input items
-      axios.get(process.env.VUE_APP_CLOUD + '/manager/users/' + this.search, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
-        // this.count = response.data.length
-        this.entries = response.data
-      }).catch((err) => {
-        console.log(err)
-      }).finally(() => (this.isLoading = false))
-    },
     searchFarms (val) {
-      // Items have already been loaded
       if (this.farms.length > 0) return
-
-      // Items have already been requested
       if (this.isLoadingFarms) return
-
       this.isLoadingFarms = true
       const user = this.$session.get('user')
       // Lazily load input items
@@ -159,7 +120,6 @@ export default {
   methods: {
     saveNewUser () {
       const user = this.$session.get('user')
-      this.newUser.email = this.model.email
       this.newUser.farm = this.modelFarms._id
       axios.post(process.env.VUE_APP_CLOUD + '/manager/new-user', this.newUser, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         console.log(response)
