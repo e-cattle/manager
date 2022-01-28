@@ -214,17 +214,12 @@ export default {
   },
   watch: {
     searchUser (val) {
-      // Items have already been loaded
       if (this.items.length > 0) return
-
-      // Items have already been requested
       if (this.isLoading) return
 
       this.isLoading = true
       const user = this.$session.get('user')
-      // Lazily load input items
       axios.get(process.env.VUE_APP_CLOUD + '/manager/users/' + this.search, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
-        // this.count = response.data.length
         this.entries = response.data
       }).catch((err) => {
         console.log(err)
@@ -280,16 +275,17 @@ export default {
           this.dialogEditFarm = false
         }).finally(() => {
           this.enabling = false
+          this.loadFarms()
         })
       } else {
         axios.post(process.env.VUE_APP_CLOUD + '/manager/farm', farm, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
           this.dialogEditFarm = false
         }).finally(() => {
           this.enabling = false
+          this.loadFarms()
         })
       }
       this.editedFarm = {}
-      this.loadFarms()
     },
     deleteUser (index) {
       this.editedFarm.users.splice(index, 1)

@@ -4,6 +4,7 @@ node_modules
 
 # local env files
 .env
+.env.test
 .env.local
 .env.*.local
 
@@ -20,3 +21,6 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Package
+package-lock.json
