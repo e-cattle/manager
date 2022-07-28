@@ -5,6 +5,16 @@
         <v-card-title class="headline">Cadastrar Usuário</v-card-title>
         <v-card-text>
           <v-text-field
+            v-model="newUser.nome"
+            prepend-icon="mdi-cursor-text"
+            append-icon="mdi-close"
+            @click:append="newUser.nome = null"
+            label="Digite o nome do novo usuário"
+            required
+            ></v-text-field>
+        </v-card-text>
+        <v-card-text>
+          <v-text-field
             v-model="newUser.email"
             :rules="emailRules"
             prepend-icon="mdi-email"
@@ -107,7 +117,7 @@ export default {
       if (this.farms.length > 0) return
       if (this.isLoadingFarms) return
       this.isLoadingFarms = true
-      const user = this.$session.get('user')
+      const user = this.$localStorage.get('user')
       // Lazily load input items
       axios.get(process.env.VUE_APP_CLOUD + '/manager/farms/' + this.searchFarms, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         console.log(response.data)
@@ -119,7 +129,7 @@ export default {
   },
   methods: {
     saveNewUser () {
-      const user = this.$session.get('user')
+      const user = this.$localStorage.get('user')
       this.newUser.farm = this.modelFarms._id
       axios.post(process.env.VUE_APP_CLOUD + '/manager/new-user', this.newUser, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         console.log(response)
