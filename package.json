@@ -13,7 +13,7 @@
     "http-server": "^14.1.1",
     "image-to-base64": "^2.2.0",
     "material-design-icons-iconfont": "^5.0.1",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "mongoose-auto-increment": "^5.0.1",
     "vue": "^2.6.14",
     "vue-authenticate": "^1.5.0",
