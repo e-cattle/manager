@@ -28,11 +28,6 @@
         >
           edit
         </v-icon>
-        <!--v-icon
-          @click="deleteItem(item)"
-        >
-          delete
-        </v-icon-->
       </template>
       <template v-slot:no-data>
         <v-btn color="primary" @click="loadFarms">Recarregar</v-btn>
@@ -221,8 +216,8 @@ export default {
       const user = this.$localStorage.get('user')
       axios.get(process.env.VUE_APP_CLOUD + '/manager/users/' + this.search, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         this.entries = response.data
-      }).catch((err) => {
-        console.log(err)
+      }).catch(() => {
+        this.$alert('Erro ao carregar dados dos usuários, por favor contacte o suporte.', 'Aviso', 'warning')
       }).finally(() => (this.isLoading = false))
     }
   },
@@ -235,10 +230,9 @@ export default {
       const user = this.$localStorage.get('user')
       var self = this
       axios.get(process.env.VUE_APP_CLOUD + '/manager/farms', { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
-        console.log(response)
         self.farms = response.data
-      }).catch(function (error) {
-        console.log(error)
+      }).catch(function () {
+        this.$alert('Erro ao carregar dados das propriedades, por favor contacte o suporte.', 'Aviso', 'warning')
       })
     },
     /* loadUsers () {
@@ -257,9 +251,6 @@ export default {
     newItem () {
       this.editedFarm = Object.assign({ users: [] })
       this.dialogEditFarm = true
-    },
-    deleteItem (item) {
-      console.log('delete')
     },
     close () {
       this.loadFarms()

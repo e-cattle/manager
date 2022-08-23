@@ -5,10 +5,10 @@
         <v-card-title class="headline">Cadastrar Usuário</v-card-title>
         <v-card-text>
           <v-text-field
-            v-model="newUser.nome"
+            v-model="newUser.name"
             prepend-icon="mdi-cursor-text"
             append-icon="mdi-close"
-            @click:append="newUser.nome = null"
+            @click:append="newUser.name = null"
             label="Digite o nome do novo usuário"
             required
             ></v-text-field>
@@ -120,10 +120,9 @@ export default {
       const user = this.$localStorage.get('user')
       // Lazily load input items
       axios.get(process.env.VUE_APP_CLOUD + '/manager/farms/' + this.searchFarms, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
-        console.log(response.data)
         this.listFarms = response.data
-      }).catch((err) => {
-        console.log(err)
+      }).catch(() => {
+        this.$alert('Erro ao carregar dados das propriedades, por favor contacte o suporte.', 'Aviso', 'warning')
       }).finally(() => (this.isLoadingFarms = false))
     }
   },
@@ -132,9 +131,9 @@ export default {
       const user = this.$localStorage.get('user')
       this.newUser.farm = this.modelFarms._id
       axios.post(process.env.VUE_APP_CLOUD + '/manager/new-user', this.newUser, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
-        console.log(response)
-      }).catch((err) => {
-        console.log(err)
+        this.$alert('Usuário cadastrado.', 'Aviso', 'success')
+      }).catch(() => {
+        this.$alert('Erro ao cadastrar usuário, por favor contacte o suporte.', 'Aviso', 'warning')
       })
     }
   }

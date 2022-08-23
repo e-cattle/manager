@@ -253,7 +253,6 @@ export default {
     providers: function () {
       return this.all.filter(function (e) {
         var social = process.env['VUE_APP_AUTH_' + e.name.toUpperCase()]
-        console.log(social)
         if (social !== undefined && social.trim().length > 0) {
           return e
         }

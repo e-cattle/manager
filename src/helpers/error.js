@@ -72,8 +72,6 @@ export default {
           default:
             message += ' [' + error.response.data.code + ']'
         }
-      } else {
-        console.log(error)
       }
 
       return message
