@@ -308,7 +308,7 @@ export default {
 
       this.loading = true
 
-      const api = process.env.VUE_APP_CLOUD
+      const api = process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG'
       const system = 'Sistema de Gestão de Inquilinos do e-Cattle'
       axios.get(api + '/status', { timeout: 2000 }).then(response => {
         axios.post(api + '/pin', { email: this.email, system: system }).then(response => {
@@ -342,7 +342,7 @@ export default {
 
       this.loading = true
 
-      const api = process.env.VUE_APP_CLOUD
+      const api = process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG'
 
       axios.get(api + '/status').then(response => {
         axios.post(api + '/authenticate', { email: this.email, pin: this.pin, type: 'USER' }).then(response => {

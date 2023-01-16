@@ -214,7 +214,7 @@ export default {
 
       this.isLoading = true
       const user = this.$localStorage.get('user')
-      axios.get(process.env.VUE_APP_CLOUD + '/manager/users/' + this.search, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+      axios.get(process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager/users/' + this.search, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         this.entries = response.data
       }).catch(() => {
         this.$alert('Erro ao carregar dados dos usuários, por favor contacte o suporte.', 'Aviso', 'warning')
@@ -229,7 +229,7 @@ export default {
     loadFarms () {
       const user = this.$localStorage.get('user')
       var self = this
-      axios.get(process.env.VUE_APP_CLOUD + '/manager/farms', { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+      axios.get(process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager/farms', { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         self.farms = response.data
       }).catch(function () {
         this.$alert('Erro ao carregar dados das propriedades, por favor contacte o suporte.', 'Aviso', 'warning')
@@ -262,14 +262,14 @@ export default {
       const user = this.$localStorage.get('user')
       const farm = this.editedFarm
       if (farm.code !== undefined) {
-        axios.put(process.env.VUE_APP_CLOUD + '/manager/farm/' + farm.code, farm, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+        axios.put(process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager/farm/' + farm.code, farm, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
           this.dialogEditFarm = false
         }).finally(() => {
           this.enabling = false
           this.loadFarms()
         })
       } else {
-        axios.post(process.env.VUE_APP_CLOUD + '/manager/farm', farm, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+        axios.post(process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager/farm', farm, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
           this.dialogEditFarm = false
         }).finally(() => {
           this.enabling = false

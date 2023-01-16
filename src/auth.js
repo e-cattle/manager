@@ -6,7 +6,7 @@ import VueAuthenticate from 'vue-authenticate'
 Vue.use(VueAxios, axios)
 
 Vue.use(VueAuthenticate, {
-  baseUrl: process.env.VUE_APP_CLOUD + '/manager',
+  baseUrl: process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager',
 
   providers: {
     google: {
