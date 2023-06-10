@@ -119,7 +119,7 @@ export default {
       this.isLoadingFarms = true
       const user = this.$localStorage.get('user')
       // Lazily load input items
-      axios.get(process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager/farms/' + this.searchFarms, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+      axios.get((process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG') + '/manager/farms/' + this.searchFarms, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         this.listFarms = response.data
       }).catch(() => {
         this.$alert('Erro ao carregar dados das propriedades, por favor contacte o suporte.', 'Aviso', 'warning')
@@ -130,7 +130,7 @@ export default {
     saveNewUser () {
       const user = this.$localStorage.get('user')
       this.newUser.farm = this.modelFarms._id
-      axios.post(process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG' + '/manager/new-user', this.newUser, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+      axios.post((process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG') + '/manager/new-user', this.newUser, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
         this.$alert('Usuário cadastrado.', 'Aviso', 'success')
       }).catch(() => {
         this.$alert('Erro ao cadastrar usuário, por favor contacte o suporte.', 'Aviso', 'warning')
