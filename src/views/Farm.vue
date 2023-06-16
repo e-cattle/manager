@@ -201,7 +201,7 @@ export default {
     items () {
       return this.entries.map((entry) => {
         const Description =
-          entry.email.length + entry.name.length > this.descriptionLimit ? entry.email : entry.name + ' - ' + entry.email
+        (entry.name === '' || entry.email.length + entry.name.length > this.descriptionLimit) ? entry.email : entry.name + ' - ' + entry.email
 
         return Object.assign({}, entry, { Description })
       })
