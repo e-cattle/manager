@@ -60,7 +60,7 @@
           </v-autocomplete>
         </v-card-text>
         <v-card-actions>
-          <v-btn :disabled="!modelFarms && !newUser.role && !newUser.email" color="warning darken-3" @click="newUser.role = null; modelFarms = null; farms = []; newUser.email = null;">
+          <v-btn :disabled="!modelFarms && !newUser.role && !newUser.email" color="warning darken-3" @click="cleanForm()">
             Limpar formulário
             <v-icon right>mdi-close-circle</v-icon>
           </v-btn>
@@ -131,10 +131,18 @@ export default {
       const user = this.$localStorage.get('user')
       this.newUser.farm = this.modelFarms._id
       axios.post((process.env.VUE_APP_CLOUD || 'VUE_APP_CLOUD_ARG') + '/manager/new-user', this.newUser, { headers: { Authorization: 'Bearer ' + user.token } }).then((response) => {
+        this.cleanForm()
         this.$alert('Usuário cadastrado.', 'Aviso', 'success')
       }).catch(() => {
         this.$alert('Erro ao cadastrar usuário, por favor contacte o suporte.', 'Aviso', 'warning')
       })
+    },
+    cleanForm () {
+      this.newUser.name = null
+      this.newUser.role = null
+      this.newUser.email = null
+      this.modelFarms = null
+      this.farms = []
     }
   }
 }
