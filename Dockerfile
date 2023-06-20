@@ -1,5 +1,5 @@
 # stage 1 as builder
-FROM node:lts-alpine as builder
+FROM node:16.20-alpine as builder
 
 # Define folder
 WORKDIR /usr/src/app
