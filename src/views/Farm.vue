@@ -30,7 +30,7 @@
         </v-icon>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click="loadFarms">Recarregar</v-btn>
+        <v-btn color="primary" @click="loadFarms" class="px-md-12 mt-12">Recarregar</v-btn>
       </template>
       <template v-slot:no-results>
         <v-alert :value="true" color="error" icon="warning">
@@ -41,36 +41,36 @@
       <v-text-field
       v-model="search"
       append-icon="search"
-      label="Buscar">
+      label="Buscar" class="px-sm-2">
       </v-text-field>
     </template>
   </v-data-table>
-  <div class="pt-2 text-right">
+  <div class="pa-12 text-right">
     <v-btn color="primary" @click="newItem()">Cadastrar Propriedade</v-btn>
   </div>
-  <v-dialog v-model="dialogEditFarm" max-width="500px">
+  <v-dialog v-model="dialogEditFarm" max-width="800px">
       <v-card>
         <v-card-title>
           <span class="headline"> {{ editedFarm.code? "Editar Propriedade de Código " : "Cadastrar Propriedade" }}  {{ editedFarm.code }}</span>
         </v-card-title>
         <v-card-text>
-          <v-container grid-list-md>
+          <v-container grid-list-lg>
             <v-layout wrap>
               <v-flex xs12 sm6 md6>
                 <v-text-field v-model="editedFarm.name" label="Nome da Propriedade"></v-text-field>
               </v-flex>
               <v-flex xs12 sm6 md6>
-                <v-text-field v-model="editedFarm.city" label="Cidade"></v-text-field>
+                <v-text-field v-model="editedFarm.state" label="Estado"></v-text-field>
               </v-flex>
               <v-flex xs12 sm12 md12>
-                <v-text-field v-model="editedFarm.state" label="Estado"></v-text-field>
+                <v-text-field v-model="editedFarm.city" label="Cidade"></v-text-field>
               </v-flex>
               <v-flex xs12 sm12 md12>
                 <span class="font-weight-bold">Usuários</span>
               </v-flex>
-              <v-flex>
+              <v-flex xs12 sm12 md12>
                 <v-row v-for="(item, index) in editedFarm.users" :key="item.id">
-                    <v-col>
+                    <v-col class="py-6">
                       <span class="font-weight-medium align-center">{{ item.user.name }}</span>
                     </v-col>
                     <v-col>
